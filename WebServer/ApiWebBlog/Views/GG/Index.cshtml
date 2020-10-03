@@ -1,0 +1,195 @@
+﻿@{
+
+    ViewData["Title"] = "Garage temperature";
+
+    var MassDataTemp = ViewData["MassDataTemp"] as List<object>;
+
+    List<GarageClass.DataForGaraj> TempNiz = null;
+    List<GarageClass.DataForGaraj> TempVerh = null;
+    List<GarageClass.DataForGaraj> Vlaja = null;
+
+    if (MassDataTemp != null)
+    {
+        TempNiz = MassDataTemp[0] as List<GarageClass.DataForGaraj>;
+        TempVerh = MassDataTemp[1] as List<GarageClass.DataForGaraj>;
+        Vlaja = MassDataTemp[2] as List<GarageClass.DataForGaraj>;
+    }
+
+    @using  System.Globalization;
+}
+
+
+
+
+<environment include="Development">
+    <script src="~/js/moment.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+</environment>
+
+<environment exclude="Development">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+    <script src="https://www.chartjs.org/dist/2.8.0/Chart.min.js"></script>
+
+</environment>
+
+<script src="~/js/utilGraf.js"></script>
+
+<style>
+
+    canvas {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+</style>
+
+<div class="col-md-12 p-xl-5">
+
+    <div style="width:100%;">
+        <canvas id="canvas"></canvas>
+    </div>
+    <br />
+    <hr />
+    <form class="form-inline">
+        <div class="form-group col-md-3">
+            <input type="text" readonly class="form-control-plaintext form-control-sm" id="staticEmail2" value="Всего точек: @ViewData["cntOllLine"]">
+        </div>
+        <div class="form-group col-md-3">
+            <input type="text" readonly class="form-control-plaintext form-control-sm" id="staticEmail2" value="Показать количество точек:">
+        </div>
+        <div class="form-group mx-sm-3 mb-2">
+            <input type="text" class="form-control form-control-sm" name="SCntV" value="@ViewData["SCntV"]">
+        </div>
+        <button type="submit" class="btn btn-primary mb-2">Показать</button>
+    </form>
+    <hr />
+    <script>
+        var color = Chart.helpers.color;
+        var config = {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Температура в подвале',
+                    backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
+                    borderColor: window.chartColors.red,
+                    fill: false,
+                    data: [
+                        @{
+                            string val="";
+                            foreach (GarageClass.DataForGaraj line in TempNiz)
+                            {
+                                val+= "{x:'"+line.DataTime+"',y:"+line.Value+" },";
+
+                            }
+
+                            val =val.Remove(val.Length - 1, 1);
+
+                            @Html.Raw(val);
+                         }
+
+                    ]
+                },{
+                    label: 'Температура на верху',
+                    backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
+                    borderColor: window.chartColors.blue,
+                    fill: false,
+                    data: [
+                        @{
+                            val="";
+                            foreach (GarageClass.DataForGaraj line in TempVerh)
+                            {
+                                val+= "{x:'"+line.DataTime+"',y:"+line.Value+" },";
+
+                            }
+
+                            val =val.Remove(val.Length - 1, 1);
+
+                            @Html.Raw(val);
+                         }
+
+                    ]
+                },{
+                    label: 'Влажность подвала деленная на 10',
+                    backgroundColor: color(window.chartColors.green).alpha(0.5).rgbString(),
+                    borderColor: window.chartColors.green,
+                    fill: false,
+                    data: [
+                        @{
+                            val="";
+
+                            /*CultureInfo info = new CultureInfo("en-EN");
+                            info.NumberFormat.CurrencyDecimalSeparator = ".";*/
+
+                            NumberFormatInfo info = new NumberFormatInfo()
+                            {
+                                CurrencyGroupSeparator = "."
+                            };
+
+                            foreach (GarageClass.DataForGaraj line in Vlaja)
+                            {
+                                val+= "{x:'"+line.DataTime+"',y:"+Convert.ToDouble(line.Value,info)/10+" },";
+
+                            }
+
+                            val =val.Remove(val.Length - 1, 1);
+
+                                @Html.Raw(val);
+                            }
+
+                    ]
+                }
+
+                ]
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Температу влажность в подвале и вверху'
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+        parser: 'DD.MM.YYYY HH:mm:ss"',
+       // tooltipFormat: 'YYYY-MM-DD HH:mm',
+        displayFormats: {
+            millisecond: 'HH:mm:ss.SSS',
+            second: 'HH:mm:ss',
+            minute: 'HH:mm',
+            hour: 'HH'
+        }
+},
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Date'
+                        },
+                        ticks: {
+                            major: {
+                                fontStyle: 'bold',
+                                fontColor: '#FF0000'
+                            }
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Значения'
+                        }
+                    }]
+                }
+            }
+        };
+
+        window.onload = function () {
+            var ctx = document.getElementById('canvas').getContext('2d');
+            window.myLine = new Chart(ctx, config);
+        };
+
+    </script>
+
+</div>
+

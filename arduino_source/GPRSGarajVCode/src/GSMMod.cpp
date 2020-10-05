@@ -43,7 +43,9 @@ void GSMMod::reset()
 bool GSMMod::isRegistered()
 {
     this->print(F("AT+CREG?\r"));
-    _buffer = _readSerial();
+    _buffer = _readSerial(100000);
+
+  //  Serial.println("isRegistered -" + _buffer);
 
     if ((_buffer.indexOf("+CREG: 0,1")) != -1 || (_buffer.indexOf("+CREG: 0,5")) != -1 || (_buffer.indexOf("+CREG: 1,1")) != -1 || (_buffer.indexOf("+CREG: 1,5")) != -1)
     {
@@ -293,7 +295,9 @@ String GSMMod::gprsHTTPSGet(const char *url, const String &data, bool read)
 uint8_t GSMMod::signalQuality()
 {
     this->print(F("AT+CSQ\r"));
-    _buffer = _readSerial(1000);
+    _buffer = _readSerial(100000);
+
+  //  Serial.println("signalQuality - " + _buffer);
 
     if ((_buffer.indexOf("+CSQ:")) != -1)
     {

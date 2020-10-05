@@ -37,6 +37,7 @@
 
 #define COUNTSEND 900     //счетчик отсылки данных
 #define COUNT_GET_TEMP 30 //счетчик получения температуры
+#define COUNTINCORRECT 3
 
 GSMMod gsm(GSMPINRX, GSMPINTX, GSMPINRESET);
 
@@ -226,6 +227,8 @@ void SetupLCD()
 }
 //*******************************************************
 uint8_t resetChPower = CHREESTART;
+uint8_t countIncorectT = COUNTINCORRECT;
+uint8_t countIncorectH = COUNTINCORRECT;
 
 void GetTemperature()
 {
@@ -233,26 +236,38 @@ void GetTemperature()
 
   float STemp1;
   float SHum1;
+  static bool firstStart;
 
   STemp1 = dht.readTemperature();
   SHum1 = dht.readHumidity();
 
-  //  Serial.println(STemp);
-  //  Serial.println(SHum);
+    Serial.println(STemp);
+    Serial.println(SHum);
 
-  if (isnan(STemp1))
-  {
-    Serial.println(F("Error reading temperature!"));
-    resetChPower--;
-  }
-  else
-  {
-    resetChPower = CHREESTART;
-    STemp = STemp1;
-    Serial.print(F("Temperature: "));
-    Serial.print(STemp);
-    Serial.println(F("�C"));
-  }
+    if (isnan(STemp1))
+    {
+      Serial.println(F("Error reading temperature!"));
+      
+      resetChPower--;
+    }
+    else
+    {
+      if (abs(STemp - STemp1) > 4 && firstStart && countIncorectT)
+      {
+        Serial.print(F("incorrect reading temperature! - "));
+        Serial.println(STemp1);
+        countIncorectT--;
+
+            }else{
+
+              countIncorectT = COUNTINCORRECT;
+              resetChPower = CHREESTART;
+              STemp = STemp1;
+              Serial.print(F("Temperature: "));
+              Serial.print(STemp);
+              Serial.println(F("�C"));
+      }
+    }
 
   if (isnan(SHum1))
   {
@@ -260,10 +275,21 @@ void GetTemperature()
   }
   else
   {
-    SHum = SHum1;
-    Serial.print(F("Humidity: "));
-    Serial.print(SHum);
-    Serial.println(F("%"));
+    if (abs(SHum - SHum1) > 40 && firstStart && countIncorectH)
+    {
+      Serial.print(F("incorrect reading humidity! - "));
+      Serial.println(SHum1);
+      countIncorectH--;
+    }
+    else
+    {
+      firstStart = true;
+      countIncorectH = COUNTINCORRECT;
+      SHum = SHum1;
+      Serial.print(F("Humidity: "));
+      Serial.print(SHum);
+      Serial.println(F("%"));
+    }
   }
 
   if (!resetChPower)
@@ -535,7 +561,7 @@ if (run == "roff")
 
     // IndicateTime();
 
-    bool isReg = gsm.isRegistered();
+    bool isReg = gsm.isRegistered();   
     IndicateGSMStatus(isReg);
 
     if (isReg)

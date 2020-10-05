@@ -30,7 +30,6 @@ void GSMMod::reset()
     digitalWrite(RESET_PIN, HIGH);
     delay(1000);
 
-    // Modul kendine geldi mi onu bekle
     this->print(F("AT\r"));
     while (_readSerial().indexOf("OK") == -1)
     {
@@ -45,7 +44,7 @@ bool GSMMod::isRegistered()
     this->print(F("AT+CREG?\r"));
     _buffer = _readSerial(100000);
 
-  //  Serial.println("isRegistered -" + _buffer);
+   // Serial.println("isRegistered -" + _buffer);
 
     if ((_buffer.indexOf("+CREG: 0,1")) != -1 || (_buffer.indexOf("+CREG: 0,5")) != -1 || (_buffer.indexOf("+CREG: 1,1")) != -1 || (_buffer.indexOf("+CREG: 1,5")) != -1)
     {
@@ -59,6 +58,7 @@ bool GSMMod::isRegistered()
 
 bool GSMMod::gprsConnectBearer(const char *apn)
 {
+
     this->print(F("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"\r"));
     _buffer = _readSerial();
 
@@ -294,6 +294,7 @@ String GSMMod::gprsHTTPSGet(const char *url, const String &data, bool read)
 // SIGNAL QUALTY - 0-31 | 0-> poor | 31 - Full | 99 -> Unknown
 uint8_t GSMMod::signalQuality()
 {
+
     this->print(F("AT+CSQ\r"));
     _buffer = _readSerial(100000);
 

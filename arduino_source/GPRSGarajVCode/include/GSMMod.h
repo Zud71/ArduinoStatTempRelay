@@ -26,7 +26,7 @@ public:
     GSMMod(uint8_t rx, uint8_t tx, uint8_t rst);
 
     void start(uint32_t baud);
-  
+
     void reset();
 
     bool isRegistered();

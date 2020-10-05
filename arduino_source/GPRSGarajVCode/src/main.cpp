@@ -35,7 +35,7 @@
 #define DHTTYPE DHT22
 #define CHREESTART 5 //счетчик сброса температурного модуля
 
-#define COUNTSEND 900     //счетчик отсылки данных
+#define COUNTSEND 900    //счетчик отсылки данных
 #define COUNT_GET_TEMP 30 //счетчик получения температуры
 #define COUNTINCORRECT 3
 
@@ -305,7 +305,8 @@ void GetTemperature()
 //-----------------------------------
 void GPRSConnect()
 {
-  bool reg = false;
+  /*bool reg = false;
+
   do
   {
     reg = gsm.isRegistered();
@@ -313,13 +314,13 @@ void GPRSConnect()
     delay(300);
   } while (!reg);
 
-  delay(300);
+  delay(300);*/
 
   do
   {
 
     IndicateGPRSStatusS("Connecting");
-    gsm.gprsConnectBearer("internet.tele2.ru");
+    gsm.gprsConnectBearer(Apn);
     delay(5000);
   } while (!gsm.gprsIsConnected());
 
@@ -443,6 +444,7 @@ void IndicateGSMStatus(bool IsRegistered)
 
   if (IsRegistered)
   {
+
     uint8_t sg = gsm.signalQuality();
     Serial.print("Registered Q:\t\t");
     Serial.println(sg);
@@ -553,16 +555,21 @@ if (run == "roff")
   uint8_t CounterDisplayShow = TIMERDISPLAY;
   bool DisplayOn = true;
   uint8_t cind=0;
-
+  bool isReg=false;
+  
   void loop()
   {
 
     IndicateTemp();
 
-    // IndicateTime();
-
-    bool isReg = gsm.isRegistered();   
     IndicateGSMStatus(isReg);
+
+    while (!isReg)
+    {
+      isReg = gsm.isRegistered();
+      delay(3000);
+    }
+      
 
     if (isReg)
     {
